@@ -19,13 +19,15 @@ struct binary_radix {
     binary_radix() : head(""), st("") {}
 };
 
+static radnode NOTFOUND("e");
 
 #define EQUAL -1
 int comparer(string &a, string &b){
-	int i = 0, size = a.size();
+	int i = 0;
+    const int size = a.size(), sizeb = b.size();
 	for (; i < size; i++){
-		if (a[i] != b[i]) {
-			i--;
+        //this does stop if b < a
+		if ((a[i] != b[i]) || i == sizeb ) {
 			break;
 		}
 	}
@@ -47,17 +49,31 @@ int comparer(string &a, string &b){
 
 
 
-int insert(binary_radix &r, radnode &parent, string &s) {
-    int res = comparer(parent.s, s);
-    if (res == EQUAL) {
+int insert(binary_radix &r, radnode &parent, string &s, int addoccurences   ) {
+    int cmp = comparer(parent.s, s);
+    string temp;
+    if (cmp == EQUAL) {
         parent.occurrences++;
+        parent.occurrences+= addoccurences;
         return 0;
-    } else if (res == PREFIX) {
-        s = s.substr(res);
+    } else if (cmp == s.size()) {
+        //we are gonna have to split the current node's string in index cmp--, cz it's larger than s
+        cmp--;
+        temp = parent.s.substr(cmp, parent.s.size() - cmp);
+        parent.s.resize(cmp + 1);
+        
+        int tempoccurences = parent.occurrences -1;
+        parent.occurrences = 0;
+        //create new node with the truncated-out string
+        insert(r, parent, temp, tempoccurences);
+        return 0;
+
+    } else {
+        s = s.substr(cmp, s.size() - cmp);
     }
 
     if (parent.m.find(s[0]) != parent.m.end()) {
-        insert(r, *(parent.m[s[0]]), s);
+        insert(r, *(parent.m[s[0]]), s, 0);
     } else {
         radnode *newnode = new radnode(s);
         parent.m.insert({s[0], newnode});
@@ -65,7 +81,57 @@ int insert(binary_radix &r, radnode &parent, string &s) {
     return 0;
 }
 
+inline char isprefix(string &a, string&b){
+    return a.size() <= b.size()? a == b.substr(0, a.size()) : 0;
+}
+
+radnode *findparent(binary_radix &r, string &s){
+    radnode &h = r.head;
+    radnode *haddr  = &r.head;
+    radnode *prevad = &NOTFOUND;
+    
+    for (;;){
+        auto search = (h.m.find(s[0]));
+        radnode *parentaddress = (search->second);
+        if (search != h.m.end()){
+
+            radnode &parent = *parentaddress;
+            if (isprefix(parent.s, s)){
+                //if they are equal
+                if (parent.s.size() == s.size())
+                    return (prevad);
+                else {
+                    prevad = haddr;
+                    haddr = parentaddress;
+                    h = *parentaddress;
+                }
+
+            }
+            else return prevad;
+        }
+        else return prevad;
+    }
+    return &NOTFOUND;
+}
+
+void inserthelp(binary_radix &br, string s){
+    auto parentaddr = findparent(br, s);
+    radnode &parent = *parentaddr;
+    if (parentaddr != &NOTFOUND){
+        insert(br, parent, s, 0);
+    }
+    else insert(br, br.head, s, 0);
+    
+}
 int main(){
+    string a = "eae";
+    string b = "ea";
+    string c = ("eael");
+    int j = comparer(a, b);
+    binary_radix br;
+    inserthelp(br, b);
+    inserthelp(br, a);
+    inserthelp(br, c);
 
 	return 0;
 }
