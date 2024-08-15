@@ -8,7 +8,7 @@ struct radnode {
     int occurrences;
 
     // Constructor with an initializer list
-    radnode(const string& st) : s(st), occurrences(0) {}
+    radnode(const string st) : s(st), occurrences(0) {}
 };
 
 struct binary_radix {
@@ -100,7 +100,7 @@ radnode *findparent(binary_radix &r, string &s){
                 //if they are equal
                 if (parent.s.size() == s.size())
                     return (prevad);
-                else {
+                else { //move on
                     prevad = haddr;
                     haddr = parentaddress;
                     h = *parentaddress;
@@ -117,11 +117,11 @@ radnode *findparent(binary_radix &r, string &s){
 void inserthelp(binary_radix &br, string s){
     auto parentaddr = findparent(br, s);
     radnode &parent = *parentaddr;
-    if (parentaddr != &NOTFOUND){
-        insert(br, parent, s, 0);
-    }
-    else insert(br, br.head, s, 0);
-    
+    // if (parentaddr != &NOTFOUND){
+    //     insert(br, parent, s, 0);
+    // }
+    // else insert(br, br.head, s, 0);
+    insert(br,br.head,s,0);
 }
 int main(){
     string a = "eae";
