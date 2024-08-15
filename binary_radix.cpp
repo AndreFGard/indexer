@@ -2,6 +2,7 @@
 #include <map>
 #include <vector>
 #include <iostream>
+#include <queue>
 #include <stdio.h>
 using namespace std;
 struct radnode {
@@ -143,7 +144,21 @@ void inserthelp(binary_radix &br, string s){
     insert(br,br.head,s,0);
 }
 
+void traverse(radnode &p, string &depth_indent, string &currstring){
+    //traversal
+    vector<radnode *> q;
+    depth_indent.append("\t");
+    for (auto son: p.m){
+        q.push_back(son.second);
+        currstring.append(son.second->s);
+        cout << depth_indent << "|-"<<son.second->occurrences<<  ": " <<  currstring<< endl;
+        traverse(*(son.second), depth_indent, currstring);
 
+        currstring.resize(currstring.size() - son.second->s.size());
+    }
+    
+    depth_indent.resize(depth_indent.size() -1);
+}
 
 int main(){
     string a = "eae";
@@ -152,8 +167,10 @@ int main(){
     inserthelp(br, (string) "eae");
     inserthelp(br, (string) "eae");
     inserthelp(br, (string) "eb");
-    inserthelp(br, (string) "eb");
-
+    inserthelp(br, (string) "eb");inserthelp(br, (string) "eb"); inserthelp(br, (string) "eb"); inserthelp(br, (string) "eb");
+    inserthelp(br, (string) "eaele");
+    string c; string d;
+    traverse(*(br.head),c ,d );
 
 	return 0;
 }
