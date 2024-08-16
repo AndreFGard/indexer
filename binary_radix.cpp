@@ -4,6 +4,7 @@
 #include <iostream>
 #include <queue>
 #include <stdio.h>
+#include <list>
 using namespace std;
 struct radnode {
     string s;
@@ -144,20 +145,42 @@ void inserthelp(binary_radix &br, string s){
     insert(br,br.head,s,0);
 }
 
-void traverse(radnode &p, string &depth_indent, string &currstring){
+list<string> traverse(radnode &p, string &depth_indent, string &currstring){
     //traversal
     vector<radnode *> q;
+    list<string> foundNodes;
+    foundNodes.push_back(p.s);
     depth_indent.append("\t");
     for (auto son: p.m){
         q.push_back(son.second);
         currstring.append(son.second->s);
+        foundNodes.push_back(currstring);
         cout << depth_indent << "|-"<<son.second->occurrences<<  ": " <<  currstring<< endl;
-        traverse(*(son.second), depth_indent, currstring);
+        foundNodes.splice(foundNodes.end(), traverse(*(son.second), depth_indent, currstring));
 
         currstring.resize(currstring.size() - son.second->s.size());
     }
     
     depth_indent.resize(depth_indent.size() -1);
+    return foundNodes;
+}
+
+void test(binary_radix &br){
+    vector<string> nodes {"teste", "testembau", "testemb", "testembaulers", "testemcaulers", "terte", "artes"};
+    for (string &s: nodes) inserthelp(br, s);
+    string indent(""); string currentstring("");
+    list<string> foundNodes = traverse(*(br.head), indent, currentstring);
+    for (string &s : nodes){
+        int found = 0;
+        for (string &fs: foundNodes){
+            if (fs == s) {
+                found = 1;
+                break;}
+        }
+        if (!found){
+            cout << "NOT FOUND: " << s <<endl;
+        }
+    }
 }
 
 int main(){
@@ -170,7 +193,7 @@ int main(){
     inserthelp(br, (string) "eb");inserthelp(br, (string) "eb"); inserthelp(br, (string) "eb"); inserthelp(br, (string) "eb");
     inserthelp(br, (string) "eaele");
     string c; string d;
-    traverse(*(br.head),c ,d );
+    test(br);
 
 	return 0;
 }
