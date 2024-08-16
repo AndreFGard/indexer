@@ -40,14 +40,14 @@ int comparer(string &a, string &b){
 	return i;
 }
 
-class binary_radix {
+class radix {
 public:
     radnode *head;
     std::string st;
     // Regular constructor
-    binary_radix() : head(new radnode("")), st("") {}
+    radix() : head(new radnode("")), st("") {}
 
-    ~binary_radix() {
+    ~radix() {
         delete head;
     }
 
@@ -93,6 +93,26 @@ public:
         }
         return parentp;
     }
+    list<string> traverse(radnode &p, string &depth_indent, string &currstring){
+    //traversal
+    vector<radnode *> q;
+    list<string> foundNodes;
+    foundNodes.push_back(p.s);
+    depth_indent.append("\t");
+    for (auto son: p.m){
+        q.push_back(son.second);
+        currstring.append(son.second->s);
+        foundNodes.push_back(currstring);
+        cout << depth_indent << "|-"<<son.second->occurrences<<  ": " <<  currstring<< endl;
+        foundNodes.splice(foundNodes.end(), traverse(*(son.second), depth_indent, currstring));
+
+        currstring.resize(currstring.size() - son.second->s.size());
+    }
+    
+    depth_indent.resize(depth_indent.size() -1);
+    return foundNodes;
+}
+
 };
 
 static radnode NOTFOUND("e");
@@ -101,9 +121,9 @@ inline char isprefix(string &a, string&b){
     return a.size() <= b.size()? a == b.substr(0, a.size()) : 0;
 }
 
-radnode *findparent(binary_radix &br, string &s){
-    radnode &h = *(br.head);
-    radnode *haddr  = br.head;
+radnode *findparent(radix &rt, string &s){
+    radnode &h = *(rt.head);
+    radnode *haddr  = rt.head;
     radnode *prevad = &NOTFOUND;
     
     for (;;){
@@ -129,52 +149,33 @@ radnode *findparent(binary_radix &br, string &s){
     return &NOTFOUND;
 }
 
-void inserthelp(binary_radix &br, string s){
-    //auto parentaddr = findparent(br, s);
+void inserthelp(radix &rt, string s){
+    //auto parentaddr = findparent(rt, s);
     //radnode &parent = *parentaddr;
     // if (parentaddr != &NOTFOUND){
-    //     insert(br, parent, s, 0);
+    //     insert(rt, parent, s, 0);
     // }
-    // else insert(br, br.head, s, 0);
-    br.insert(br.head,s,0);
+    // else insert(rt, rt.head, s, 0);
+    rt.insert(rt.head,s,0);
 }
 
-list<string> traverse(radnode &p, string &depth_indent, string &currstring){
-    //traversal
-    vector<radnode *> q;
-    list<string> foundNodes;
-    foundNodes.push_back(p.s);
-    depth_indent.append("\t");
-    for (auto son: p.m){
-        q.push_back(son.second);
-        currstring.append(son.second->s);
-        foundNodes.push_back(currstring);
-        cout << depth_indent << "|-"<<son.second->occurrences<<  ": " <<  currstring<< endl;
-        foundNodes.splice(foundNodes.end(), traverse(*(son.second), depth_indent, currstring));
-
-        currstring.resize(currstring.size() - son.second->s.size());
-    }
-    
-    depth_indent.resize(depth_indent.size() -1);
-    return foundNodes;
-}
 
 void test(){
     string a = "eae";
-    binary_radix br;
-    inserthelp(br, a);
-    inserthelp(br, (string) "eae");
-    inserthelp(br, (string) "eae");
-    inserthelp(br, (string) "eb");
-    inserthelp(br, (string) "eb");inserthelp(br, (string) "eb"); inserthelp(br, (string) "eb"); inserthelp(br, (string) "eb");
-    inserthelp(br, (string) "eaele");
+    radix rt;
+    inserthelp(rt, a);
+    inserthelp(rt, (string) "eae");
+    inserthelp(rt, (string) "eae");
+    inserthelp(rt, (string) "eb");
+    inserthelp(rt, (string) "eb");inserthelp(rt, (string) "eb"); inserthelp(rt, (string) "eb"); inserthelp(rt, (string) "eb");
+    inserthelp(rt, (string) "eaele");
     string c; string d;
 
     
     vector<string> nodes {"teste", "testembau", "testemb", "testembaulers", "testemcaulers", "terte", "artes"};
-    for (string &s: nodes) inserthelp(br, s);
+    for (string &s: nodes) inserthelp(rt, s);
     string indent(""); string currentstring("");
-    list<string> foundNodes = traverse(*(br.head), indent, currentstring);
+    list<string> foundNodes = rt.traverse(*(rt.head), indent, currentstring);
     for (string &s : nodes){
         int found = 0;
         for (string &fs: foundNodes){
