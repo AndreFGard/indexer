@@ -7,14 +7,7 @@
 #include <list>
 #define EQUAL_STRINGS -1
 using namespace std;
-struct radnode {
-    string s;
-    map<char, radnode*> m;
-    int occurrences;
-
-    // Constructor with an initializer list
-    radnode(const string st) : s(st), occurrences(0) {}
-};
+#include "radix_tree.h"
 
 inline int comparer(string &a, string &b){
 	int i = 0;
@@ -45,18 +38,15 @@ inline char isprefix(string &a, string&b){
 }
 
 
-class radix {
-public:
-    radnode *head;
-    std::string st;
+//radix
     // Regular constructor
-    radix() : head(new radnode("")), st("") {}
+    radix::radix() : head(new radnode("")), st("") {}
 
-    ~radix() {
+    radix::~radix() {
         delete head;
     }
 
-    radnode *insert(radnode *parentp, string &s, int addoccurences) {
+    radnode *radix::insert(radnode *parentp, string &s, int addoccurences) {
         radnode &parent = *parentp;
         
         int cmp = comparer(parent.s, s);
@@ -100,7 +90,7 @@ public:
     }
 
     //returns the node that matches the string sequence, it might have been added to the tree or not
-    radnode *find(string s){
+    radnode* radix::find(string s){
         radnode *parent = head;
         while(s.size() != 0){
             char beg = s[0];
@@ -118,7 +108,7 @@ public:
         return parent;
     }
 
-    list<string> traverse(radnode &p, string &depth_indent, string &currstring){
+    list<string> radix::traverse(radnode &p, string &depth_indent, string &currstring){
         //traversal
         vector<radnode *> q;
         list<string> foundNodes;
@@ -139,19 +129,22 @@ public:
         depth_indent.resize(depth_indent.size() -1);
         return foundNodes;
     }
-    inline list<string> traverse(radnode &p, string base_string) { 
+    inline list<string> radix::traverse(radnode &p, string base_string) { 
         string a(""); return traverse(p,a,base_string);
     }
 
-    list<string> find_by_prefix(string prefix){
+    list<string> radix::find_by_prefix(string prefix){
         list<string> founds;
         radnode *source = find(prefix);
         if (source == nullptr) return founds;
         return traverse(*source, prefix);
     }
-};
 
+    radnode* radix::insert(string s){
+        return radix::insert(head, s, 0);
+    }
 
+//;
 
 inline void inserthelp(radix &rt, string s){
     rt.insert(rt.head,s,0);

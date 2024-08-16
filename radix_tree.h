@@ -29,6 +29,8 @@ class radix {
         ~radix();
 
         radnode *insert(radnode *parentp, string &s, int addoccurences);
+        radnode *insert(string s);
+
         radnode *find(string s);
         list<string> traverse(radnode &p, string &depth_indent, string &currstring);
         inline list<string> traverse(radnode &p, string base_string);
