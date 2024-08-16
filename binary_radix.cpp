@@ -5,6 +5,7 @@
 #include <queue>
 #include <stdio.h>
 #include <list>
+#define EQUAL -1
 using namespace std;
 struct radnode {
     string s;
@@ -15,23 +16,6 @@ struct radnode {
     radnode(const string st) : s(st), occurrences(0) {}
 };
 
-struct binary_radix {
-    radnode *head;
-    std::string st;
-
-    // Regular constructor
-    binary_radix() : head(new radnode("")), st("") {}
-
-    // Destructor to clean up allocated memory
-    ~binary_radix() {
-        delete head;
-    }
-};
-
-
-static radnode NOTFOUND("e");
-
-#define EQUAL -1
 int comparer(string &a, string &b){
 	int i = 0;
     const int size = a.size(), sizeb = b.size();
@@ -52,55 +36,66 @@ int comparer(string &a, string &b){
 			return EQUAL;
 		}
 		else return i; //from i onwards, put the string in a new node.
-
 	}
 	return i;
 }
 
+class binary_radix {
+public:
+    radnode *head;
+    std::string st;
+    // Regular constructor
+    binary_radix() : head(new radnode("")), st("") {}
+
+    ~binary_radix() {
+        delete head;
+    }
+
+    radnode *insert(radnode *parentp, string &s, int addoccurences) {
+        radnode &parent = *parentp;
+        
+        int cmp = comparer(parent.s, s);
+        string temp;
+        if (cmp == EQUAL) {
+            parent.occurrences++;
+            parent.occurrences+= addoccurences;
+            return parentp;
+        } else if (cmp < parent.s.size()) {
+            //we are gonna have to split the current node's string in index cmp--, cz it's larger than s
+            //temp = parent.s.substr(cmp, parent.s.size() - cmp);
+            temp = parent.s;
+            parent.s.resize(cmp );
+
+            
+            int tempoccurences = parent.occurrences -1;
+            parent.occurrences = 0;
+
+            // I had trouble learning how to make a struct constructor with a pointer to map, sorry for all of the copy-by-value
+            map<char, radnode *> tempmap = parent.m;
+            parent.m.clear();
+            //create new node with the parent's truncated string and move the old map of children to it
+            radnode *newlocation = insert(parentp, temp, tempoccurences);
+            newlocation->m = tempmap; //~_~ 
+
+            
+            //leave s to be inserted here as usual
+        }
+            s = s.substr(cmp, s.size() - cmp);
 
 
-radnode *insert(binary_radix &br, radnode *parentp, string &s, int addoccurences) {
-    radnode &parent = *parentp;
-    
-    int cmp = comparer(parent.s, s);
-    string temp;
-    if (cmp == EQUAL) {
-        parent.occurrences++;
-        parent.occurrences+= addoccurences;
+        if (parent.m.find(s[0]) != parent.m.end()) {
+            insert((parent.m[s[0]]), s, 0);
+        } else {
+            radnode *newnode = new radnode(s);
+            newnode->occurrences = 1;
+            parent.m.insert({s[0], newnode});
+            return newnode;
+        }
         return parentp;
-    } else if (cmp < parent.s.size()) {
-        //we are gonna have to split the current node's string in index cmp--, cz it's larger than s
-        //temp = parent.s.substr(cmp, parent.s.size() - cmp);
-        temp = parent.s;
-        parent.s.resize(cmp );
-
-        
-        int tempoccurences = parent.occurrences -1;
-        parent.occurrences = 0;
-
-        // I had trouble learning how to make a struct constructor with a pointer to map, sorry for all of the copy-by-value
-        map<char, radnode *> tempmap = parent.m;
-        parent.m.clear();
-        //create new node with the parent's truncated string and move the old map of children to it
-        radnode *newlocation = insert(br, parentp, temp, tempoccurences);
-        newlocation->m = tempmap; //~_~ 
-
-        
-        //leave s to be inserted here as usual
     }
-        s = s.substr(cmp, s.size() - cmp);
+};
 
-
-    if (parent.m.find(s[0]) != parent.m.end()) {
-        insert(br, (parent.m[s[0]]), s, 0);
-    } else {
-        radnode *newnode = new radnode(s);
-        newnode->occurrences = 1;
-        parent.m.insert({s[0], newnode});
-        return newnode;
-    }
-    return parentp;
-}
+static radnode NOTFOUND("e");
 
 inline char isprefix(string &a, string&b){
     return a.size() <= b.size()? a == b.substr(0, a.size()) : 0;
@@ -126,7 +121,6 @@ radnode *findparent(binary_radix &br, string &s){
                     haddr = parentaddress;
                     h = *parentaddress;
                 }
-
             }
             else return prevad;
         }
@@ -142,7 +136,7 @@ void inserthelp(binary_radix &br, string s){
     //     insert(br, parent, s, 0);
     // }
     // else insert(br, br.head, s, 0);
-    insert(br,br.head,s,0);
+    br.insert(br.head,s,0);
 }
 
 list<string> traverse(radnode &p, string &depth_indent, string &currstring){
@@ -165,7 +159,18 @@ list<string> traverse(radnode &p, string &depth_indent, string &currstring){
     return foundNodes;
 }
 
-void test(binary_radix &br){
+void test(){
+    string a = "eae";
+    binary_radix br;
+    inserthelp(br, a);
+    inserthelp(br, (string) "eae");
+    inserthelp(br, (string) "eae");
+    inserthelp(br, (string) "eb");
+    inserthelp(br, (string) "eb");inserthelp(br, (string) "eb"); inserthelp(br, (string) "eb"); inserthelp(br, (string) "eb");
+    inserthelp(br, (string) "eaele");
+    string c; string d;
+
+    
     vector<string> nodes {"teste", "testembau", "testemb", "testembaulers", "testemcaulers", "terte", "artes"};
     for (string &s: nodes) inserthelp(br, s);
     string indent(""); string currentstring("");
@@ -182,18 +187,5 @@ void test(binary_radix &br){
         }
     }
 }
+int main() {test();}
 
-int main(){
-    string a = "eae";
-    binary_radix br;
-    inserthelp(br, a);
-    inserthelp(br, (string) "eae");
-    inserthelp(br, (string) "eae");
-    inserthelp(br, (string) "eb");
-    inserthelp(br, (string) "eb");inserthelp(br, (string) "eb"); inserthelp(br, (string) "eb"); inserthelp(br, (string) "eb");
-    inserthelp(br, (string) "eaele");
-    string c; string d;
-    test(br);
-
-	return 0;
-}
