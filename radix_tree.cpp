@@ -5,8 +5,7 @@
 #include <queue>
 #include <stdio.h>
 #include <list>
-#define EQUAL -1
-#define NOTFOUND -1
+#define EQUAL_STRINGS -1
 using namespace std;
 struct radnode {
     string s;
@@ -17,7 +16,7 @@ struct radnode {
     radnode(const string st) : s(st), occurrences(0) {}
 };
 
-int comparer(string &a, string &b){
+inline int comparer(string &a, string &b){
 	int i = 0;
     const int size = a.size(), sizeb = b.size();
 	for (; i < size; i++){
@@ -34,7 +33,7 @@ int comparer(string &a, string &b){
 		//no differences found
 		if (size == b.size()){
 			//they are equal
-			return EQUAL;
+			return EQUAL_STRINGS;
 		}
 		else return i; //from i onwards, put the string in a new node.
 	}
@@ -62,7 +61,7 @@ public:
         
         int cmp = comparer(parent.s, s);
         string temp;
-        if (cmp == EQUAL) {
+        if (cmp == EQUAL_STRINGS) {
             parent.occurrences++;
             parent.occurrences+= addoccurences;
             return parentp;
@@ -154,43 +153,13 @@ public:
 
 
 
-
-radnode NOTFOUNDN("");
-
-radnode *findparent(radix &rt, string &s){
-    radnode &h = *(rt.head);
-    radnode *haddr  = rt.head;
-    radnode *prevad = &NOTFOUNDN;
-    
-    for (;;){
-        auto search = (h.m.find(s[0]));
-        radnode *parentaddress = (search->second);
-        if (search != h.m.end()){
-
-            radnode &parent = *parentaddress;
-            if (isprefix(parent.s, s)){
-                //if they are equal
-                if (parent.s.size() == s.size())
-                    return (prevad);
-                else { //move on
-                    prevad = haddr;
-                    haddr = parentaddress;
-                    h = *parentaddress;
-                }
-            }
-            else return prevad;
-        }
-        else return prevad;
-    }
-    return &NOTFOUNDN;
-}
-
 inline void inserthelp(radix &rt, string s){
     rt.insert(rt.head,s,0);
 }
 
-radix rt;
-void test(){
+
+inline void test(){
+    radix rt;
     string a = "eae";
     inserthelp(rt, a);
     inserthelp(rt, (string) "eae");
@@ -226,5 +195,3 @@ void test(){
 
     
 }
-int main() {test();}
-
