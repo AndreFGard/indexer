@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <list>
 #define EQUAL -1
+#define NOTFOUND -1
 using namespace std;
 struct radnode {
     string s;
@@ -39,6 +40,11 @@ int comparer(string &a, string &b){
 	}
 	return i;
 }
+
+inline char isprefix(string &a, string&b){
+    return a.size() <= b.size()? a == b.substr(0, a.size()) : 0;
+}
+
 
 class radix {
 public:
@@ -93,38 +99,56 @@ public:
         }
         return parentp;
     }
+
+
     list<string> traverse(radnode &p, string &depth_indent, string &currstring){
-    //traversal
-    vector<radnode *> q;
-    list<string> foundNodes;
-    foundNodes.push_back(p.s);
-    depth_indent.append("\t");
-    for (auto son: p.m){
-        q.push_back(son.second);
-        currstring.append(son.second->s);
-        foundNodes.push_back(currstring);
-        cout << depth_indent << "|-"<<son.second->occurrences<<  ": " <<  currstring<< endl;
-        foundNodes.splice(foundNodes.end(), traverse(*(son.second), depth_indent, currstring));
+        //traversal
+        vector<radnode *> q;
+        list<string> foundNodes;
+        foundNodes.push_back(p.s);
+        depth_indent.append("\t");
+        for (auto son: p.m){
+            q.push_back(son.second);
+            currstring.append(son.second->s);
+            foundNodes.push_back(currstring);
+            cout << depth_indent << "|-"<<son.second->occurrences<<  ": " <<  currstring<< endl;
+            foundNodes.splice(foundNodes.end(), traverse(*(son.second), depth_indent, currstring));
 
-        currstring.resize(currstring.size() - son.second->s.size());
+            currstring.resize(currstring.size() - son.second->s.size());
+        }
+        
+        depth_indent.resize(depth_indent.size() -1);
+        return foundNodes;
     }
-    
-    depth_indent.resize(depth_indent.size() -1);
-    return foundNodes;
-}
 
+    int find(string s){
+        radnode *parent = head;
+        while(s.size() != 0){
+            char beg = s[0];
+            if (parent->m.find(beg) != parent->m.end()){
+                int oldParentSize = parent->s.size();
+                parent = (parent->m[beg]);
+                
+                if (isprefix(parent->s, s)){
+                    s = s.substr(parent->s.size(), s.size()-parent->s.size());
+                } else return NOTFOUND;
+                
+            }
+            else return NOTFOUND;
+        }
+        return parent->occurrences > 0 ? parent->occurrences : NOTFOUND;
+    }
 };
 
-static radnode NOTFOUND("e");
 
-inline char isprefix(string &a, string&b){
-    return a.size() <= b.size()? a == b.substr(0, a.size()) : 0;
-}
+
+
+radnode NOTFOUNDN("");
 
 radnode *findparent(radix &rt, string &s){
     radnode &h = *(rt.head);
     radnode *haddr  = rt.head;
-    radnode *prevad = &NOTFOUND;
+    radnode *prevad = &NOTFOUNDN;
     
     for (;;){
         auto search = (h.m.find(s[0]));
@@ -146,7 +170,7 @@ radnode *findparent(radix &rt, string &s){
         }
         else return prevad;
     }
-    return &NOTFOUND;
+    return &NOTFOUNDN;
 }
 
 void inserthelp(radix &rt, string s){
@@ -159,10 +183,10 @@ void inserthelp(radix &rt, string s){
     rt.insert(rt.head,s,0);
 }
 
-
+    radix rt;
 void test(){
     string a = "eae";
-    radix rt;
+
     inserthelp(rt, a);
     inserthelp(rt, (string) "eae");
     inserthelp(rt, (string) "eae");
@@ -172,7 +196,7 @@ void test(){
     string c; string d;
 
     
-    vector<string> nodes {"teste", "testembau", "testemb", "testembaulers", "testemcaulers", "terte", "artes"};
+    vector<string> nodes {"teste", "testembau", "testemb","teste", "testembaulers", "testemcaulers", "terte", "artes"};
     for (string &s: nodes) inserthelp(rt, s);
     string indent(""); string currentstring("");
     list<string> foundNodes = rt.traverse(*(rt.head), indent, currentstring);
@@ -183,10 +207,13 @@ void test(){
                 found = 1;
                 break;}
         }
+        cout << s << " " << rt.find(s) << endl;
         if (!found){
-            cout << "NOT FOUND: " << s <<endl;
+            cout << "\tNOT FOUND: " << s <<endl;
         }
     }
+
+    
 }
 int main() {test();}
 
