@@ -100,28 +100,8 @@ public:
         return parentp;
     }
 
-
-    list<string> traverse(radnode &p, string &depth_indent, string &currstring){
-        //traversal
-        vector<radnode *> q;
-        list<string> foundNodes;
-        foundNodes.push_back(p.s);
-        depth_indent.append("\t");
-        for (auto son: p.m){
-            q.push_back(son.second);
-            currstring.append(son.second->s);
-            foundNodes.push_back(currstring);
-            cout << depth_indent << "|-"<<son.second->occurrences<<  ": " <<  currstring<< endl;
-            foundNodes.splice(foundNodes.end(), traverse(*(son.second), depth_indent, currstring));
-
-            currstring.resize(currstring.size() - son.second->s.size());
-        }
-        
-        depth_indent.resize(depth_indent.size() -1);
-        return foundNodes;
-    }
-
-    int find(string s){
+    //returns the node that matches the string sequence, it might have been added to the tree or not
+    radnode *find(string s){
         radnode *parent = head;
         while(s.size() != 0){
             char beg = s[0];
@@ -131,12 +111,44 @@ public:
                 
                 if (isprefix(parent->s, s)){
                     s = s.substr(parent->s.size(), s.size()-parent->s.size());
-                } else return NOTFOUND;
+                } else return nullptr;
                 
             }
-            else return NOTFOUND;
+            else return nullptr;
         }
-        return parent->occurrences > 0 ? parent->occurrences : NOTFOUND;
+        return parent;
+    }
+
+    list<string> traverse(radnode &p, string &depth_indent, string &currstring){
+        //traversal
+        vector<radnode *> q;
+        list<string> foundNodes;
+        
+        depth_indent.append("\t");
+        for (auto son: p.m){
+            q.push_back(son.second);
+
+            currstring.append(son.second->s);
+            foundNodes.push_back(currstring);
+            cout << depth_indent << "|-"<<son.second->occurrences<<  ": " <<  currstring<< endl;
+            foundNodes.splice(foundNodes.end(), 
+                            traverse(*(son.second), depth_indent, currstring));
+
+            currstring.resize(currstring.size() - son.second->s.size());
+        }
+        
+        depth_indent.resize(depth_indent.size() -1);
+        return foundNodes;
+    }
+    inline list<string> traverse(radnode &p, string base_string) { 
+        string a(""); return traverse(p,a,base_string);
+    }
+
+    list<string> find_by_prefix(string prefix){
+        list<string> founds;
+        radnode *source = find(prefix);
+        if (source == nullptr) return founds;
+        return traverse(*source, prefix);
     }
 };
 
@@ -173,20 +185,13 @@ radnode *findparent(radix &rt, string &s){
     return &NOTFOUNDN;
 }
 
-void inserthelp(radix &rt, string s){
-    //auto parentaddr = findparent(rt, s);
-    //radnode &parent = *parentaddr;
-    // if (parentaddr != &NOTFOUND){
-    //     insert(rt, parent, s, 0);
-    // }
-    // else insert(rt, rt.head, s, 0);
+inline void inserthelp(radix &rt, string s){
     rt.insert(rt.head,s,0);
 }
 
-    radix rt;
+radix rt;
 void test(){
     string a = "eae";
-
     inserthelp(rt, a);
     inserthelp(rt, (string) "eae");
     inserthelp(rt, (string) "eae");
@@ -207,10 +212,16 @@ void test(){
                 found = 1;
                 break;}
         }
-        cout << s << " " << rt.find(s) << endl;
+        cout << s << " " << rt.find(s)->occurrences << endl;
         if (!found){
             cout << "\tNOT FOUND: " << s <<endl;
         }
+    }
+    string prefix = "te";
+    list<string> found_by_prefix = rt.find_by_prefix(prefix);
+    cout << "found by the prefix \'te\':" << endl;
+    for (string &s: found_by_prefix){
+        cout << s << endl;
     }
 
     
