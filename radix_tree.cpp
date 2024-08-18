@@ -40,10 +40,19 @@ inline char isprefix(string &a, string&b){
 
 //radix
     // Regular constructor
-    radix::radix() : head(new radnode("")), st("") {}
-
+    radix::radix() : head(new radnode("")), st(""), size(0) {}
+    
     radix::~radix() {
-        delete head;
+        queue<radnode *> q;
+        radnode *cur = head;
+        q.push(head);
+        while (!q.empty()){
+            cur = q.front(); q.pop();
+            for (auto s: cur->m){
+                q.push(s.second);
+            }
+            delete cur;
+        }
     }
 
     radnode *radix::insert(radnode *parentp, string &s, int addoccurences) {
@@ -83,6 +92,7 @@ inline char isprefix(string &a, string&b){
         } else {
             radnode *newnode = new radnode(s);
             newnode->occurrences = 1;
+            size++;
             parent.m.insert({s[0], newnode});
             return newnode;
         }

@@ -24,6 +24,7 @@ class radix {
     public:
         radnode *head;
         string st;
+        int size;
 
         radix();
         ~radix();
