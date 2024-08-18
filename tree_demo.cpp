@@ -27,4 +27,5 @@ int main(){
     time_t after_search = time(nullptr);
     cout << "finish search in " << after_search - after_insertion << endl;
     cout << "success: "<< success << endl;
+    cout << "number of nodes: " << rt.nodes << " number of strings added: " << rt.size << endl;
 }
