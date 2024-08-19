@@ -1,6 +1,8 @@
 #include <dirent.h>
 #include <iostream>
 #include <sys/types.h>
+#include <chrono>
+#include <sys/time.h>
 #include <stdlib.h>
 #include <queue>
 
@@ -69,11 +71,20 @@ int main(int argc, char *argv[]) {
 		cout << "ready to search\n";
 		string query("");
 		cin >> query;
+		
 		while (!query.empty()){
+			if (query == "$finish") break;
+			
+			struct timeval start, stop;
+			gettimeofday(&start, nullptr);
 			radnode *result = rt.find(query);
-			if (result != nullptr) cout << "found!: " << result->s << endl;
+			gettimeofday(&stop, nullptr);
+
+			if (result != nullptr) cout << "found! time "<<  (double)(((__float128) ( stop.tv_usec -start.tv_usec))/1000) << "ms" << endl;
+			else cout << "not found :( " << (double)(((__float128) ( stop.tv_usec -start.tv_usec))/1000) << "ms" << endl;
 			cin >> query;
 		}
+		cout << "nodes: " << rt.nodes << ", entries: " << rt.size << endl;
 	}
 
 }
