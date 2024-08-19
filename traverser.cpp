@@ -10,26 +10,38 @@ using namespace std;
 #include "radix_tree.h"
 
 
-int main(int argc, char *argv[]) {
-	queue<string> q;
-	DIR *dirstream;
-	const string path = "./";
-	q.push(path);
-	radix rt;
-	
-	//get options:
-	char option = 0, use_tree = 1;
+void get_options(int argc, char *argv[], char *use_tree, string &path){
+	char option  = 0;
 	while ((option = getopt(argc, argv, "t")) != -1){
 		switch (option){
 		case  't':
-			use_tree = 1; break;
-		default: puts("unrecognized option");
+			*use_tree = 1; break;
+		default: fprintf(stderr, "unrecognized option %c\n", option);
 		}
 	}
+	if (optind < argc){
+		path = (string) argv[optind];
+		if (path.back() != '/' )
+			path.insert(path.end(), '/');
+	}
+}
+
+int main(int argc, char *argv[]) {
+	queue<string> q;
+	DIR *dirstream;
+	
+	char option = 0, use_tree = 0;
+	string path = "./";
+	
+	radix rt;
+	
+	//get options:
+	get_options(argc, argv, &use_tree, path);
+	q.push(path);
 
 	while(!q.empty()){
 		struct dirent *ep;
-		string &currdir = q.front(); q.pop();
+		string currdir = q.front(); q.pop();
 		dirstream = opendir(currdir.c_str());
 
 		if (dirstream != nullptr){
@@ -47,6 +59,7 @@ int main(int argc, char *argv[]) {
 					if (use_tree) rt.insert(ep->d_name);
 				}
 			}
+			closedir(dirstream);
 
 
 		}
